@@ -1,0 +1,18 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "ca.lu258.kcct.runright"
+    },
+    "cordova-plugin-bluetoothle": {
+      "PACKAGE_NAME": "ca.lu258.kcct.runright"
+    }
+  },
+  "dependent_plugins": {}
+}

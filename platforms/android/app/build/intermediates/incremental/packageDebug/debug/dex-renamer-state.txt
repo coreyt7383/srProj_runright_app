@@ -1,0 +1,4 @@
+#Sun Mar 31 18:37:51 EDT 2019
+base.0=C\:\\Users\\corey\\kcctapp\\platforms\\android\\app\\build\\intermediates\\transforms\\dexMerger\\debug\\0
+path.0=classes.dex
+renamed.0=classes.dex
