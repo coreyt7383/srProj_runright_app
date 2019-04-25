@@ -22,9 +22,25 @@ var app = {
     // Application Constructor
     initialize: function() {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-        document.addEventListener("volumedownbutton",function(){
-           window.location = "info_screen.html"
-        },false);
+        document.addEventListener('deviceready', function () {
+            new Promise(function (resolve) {
+            bluetoothle.initialize(resolve, { request: true, statusReceiver: false });
+            }).then(initializeSuccess, handleError);
+         function initializeSuccess(result) 
+         {
+            if (result.status === "enabled") 
+                {
+                log("Bluetooth is enabled.");
+                log(result);
+                }
+            else 
+                {
+                document.getElementById("start-scan").disabled = true;
+                log("Bluetooth is not enabled:", "status");
+                log(result, "status");      
+                }
+        }
+        });
     },
     // deviceready Event Handler
     //
@@ -32,6 +48,9 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
         this.receivedEvent('deviceready');
+        document.addEventListener("volumedownbutton",function(){
+            window.location = "info_screen.html"
+         },false);
     },
 
     // Update DOM on a Received Event

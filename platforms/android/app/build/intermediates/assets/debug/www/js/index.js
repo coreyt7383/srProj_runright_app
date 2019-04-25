@@ -22,9 +22,6 @@ var app = {
     // Application Constructor
     initialize: function() {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-        document.addEventListener("volumedownbutton",function(){
-           window.location = "info_screen.html"
-        },false);
     },
     // deviceready Event Handler
     //
@@ -32,6 +29,9 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
         this.receivedEvent('deviceready');
+        document.addEventListener("volumedownbutton",function(){
+            window.location = "info_screen.html"
+         },false);
     },
 
     // Update DOM on a Received Event
