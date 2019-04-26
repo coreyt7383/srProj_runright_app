@@ -56,7 +56,7 @@ function connectSuccess(result){
         })
     }
 }
-function discoverSuccess(result){
+function discoverSuccess(result){ // Once the device is discovered and connected
     /*result.services.forEach(function(service){
         if(service.uuid == uartUUID){
             service.characteristics.forEach(function(characteristic){
@@ -64,32 +64,42 @@ function discoverSuccess(result){
             });
         }
     });*/
-    htmlstr.innerHTML = "Data in<p>...<p>"
-    bluetoothle.subscribe(subscribeSuccess, handleError, {
-        address : RRAddr,
-        service : uartUUID,
-        characteristic : rxID
-    })
+    htmlstr.innerHTML = "Press volume down to set neutral position.";
+    document.addEventListener("volumedownbutton",function(){
+        write("RR_NSET");
+        htmlstr.innerHTML = "Neutral Position Set!<p>";
+        bluetoothle.subscribe(subscribeSuccess, handleError, {
+            address : RRAddr,
+            service : uartUUID,
+            characteristic : rxID
+        })
+     },false);
+
 }
 function subscribeSuccess(result){
     if(result.status == "subscribedResult"){
         htmlstr.innerHTML = htmlstr.innerHTML + decoded(result.value) + "<p>";
+        readString(decoded(result.value));
     }
 }
 function writeSuccess(result){
 }
-function encoded(string){
+function encoded(string){ // Helper function to encode string to base 64 string 
     return bluetoothle.bytesToEncodedString(bluetoothle.stringToBytes(string));
 }
-function write(string){
+function decoded(string){ // Helper function to decoded base 64 string to a normal string
+    return bluetoothle.bytesToString(bluetoothle.encodedStringToBytes(string));
+}
+function write(string){ //Helper function to write a string to the RunRight
+    if(RRAddr == "") {return;}
     bluetoothle.write(writeSuccess, handleError,{
         address : RRAddr,
         service : uartUUID,
         characteristic : txID,
-        value : encoded(string)
+        value : encoded(string+"\n\l")
     });
 }
-function decoded(string){
-    return bluetoothle.bytesToString(bluetoothle.encodedStringToBytes(string));
+function readString(string){
+
 }
 main();
