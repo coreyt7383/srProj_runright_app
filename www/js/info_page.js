@@ -1,17 +1,15 @@
 
+var htmlstr = document.querySelector("#posture_info");
+var RRAddr = "";
+var uartUUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+var txID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+var rxID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 function main()
 {
-    var p = document.querySelector("#posture_info")
-    var discriminant = 0;
-    document.addEventListener("volumeupbutton",function(){
-        var devices = bluetoothle.retrieveConnected(retrievedDevices, function(){}, function(){});
-        //discriminant = discriminant+1;
-        //p.innerHTML = "<font size = 20>"+discriminant+"</font>";
-    },false);
-    document.addEventListener("volumedownbutton",function(){
-        //discriminant = discriminant-1;
-        //p.innerHTML = "<font size = 20>"+discriminant+"</font>";
-    },false);
+    htmlstr.innerHTML = "Initializing...";
+    setTimeout(function(){
+        bluetoothle.initialize(initializeSuccess, { request: true, statusReceiver: false });
+    },1000);
 }
 function handleError(error) {
     var msg;
@@ -34,9 +32,64 @@ function handleError(error) {
         reportValue(error.service, error.characteristic, "Error: " + error.message);
     }
 }
-function retrievedDevices(devices){
-    var p = document.querySelector("#posture_info");
-
-    p.innerHTML = "<font size = 20>"+devices.tostring()+"</font>";
+function initializeSuccess(result) {
+    if (result.status === "enabled") {
+        htmlstr.innerHTML = "Searching for RunRight..."
+        bluetoothle.retrieveConnected(retrieveConnectedSuccess, handleError, {});
+    }
+}
+function retrieveConnectedSuccess(result){
+    result.forEach(function(device){
+        if(device.name == "RunRightBT"){
+            htmlstr.innerHTML = "Found!"
+            RRAddr = device.address
+            bluetoothle.connect(connectSuccess,handleError, {address : RRAddr, autoConnect : true});
+        }
+    });
+}
+function connectSuccess(result){
+    if (result.status == "connected") {
+        htmlstr.innerHTML = "Connected to RunRight!";
+        bluetoothle.discover(discoverSuccess, handleError, {
+            address : RRAddr,
+            clearCache : true
+        })
+    }
+}
+function discoverSuccess(result){
+    /*result.services.forEach(function(service){
+        if(service.uuid == uartUUID){
+            service.characteristics.forEach(function(characteristic){
+                htmlstr.innerHTML = htmlstr.innerHTML + characteristic.uuid + "<p>";
+            });
+        }
+    });*/
+    htmlstr.innerHTML = "Data in<p>...<p>"
+    bluetoothle.subscribe(subscribeSuccess, handleError, {
+        address : RRAddr,
+        service : uartUUID,
+        characteristic : rxID
+    })
+}
+function subscribeSuccess(result){
+    if(result.status == "subscribedResult"){
+        htmlstr.innerHTML = htmlstr.innerHTML + decoded(result.value) + "<p>";
+    }
+}
+function writeSuccess(result){
+}
+function encoded(string){
+    return bluetoothle.bytesToEncodedString(bluetoothle.stringToBytes(string));
+}
+function write(string){
+    bluetoothle.write(writeSuccess, handleError,{
+        address : RRAddr,
+        service : uartUUID,
+        characteristic : txID,
+        value : encoded(string)
+    });
+}
+function decoded(string){
+    return bluetoothle.bytesToString(bluetoothle.encodedStringToBytes(string));
 }
 main();
