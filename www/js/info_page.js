@@ -32,13 +32,13 @@ function handleError(error) {
         reportValue(error.service, error.characteristic, "Error: " + error.message);
     }
 }
-function initializeSuccess(result) {
+function initializeSuccess(result) { // Bluetooth enabled
     if (result.status === "enabled") {
         htmlstr.innerHTML = "Searching for RunRight..."
         bluetoothle.retrieveConnected(retrieveConnectedSuccess, handleError, {});
     }
 }
-function retrieveConnectedSuccess(result){
+function retrieveConnectedSuccess(result){ //Successfully retrieved connected devices
     result.forEach(function(device){
         if(device.name == "RunRightBT"){
             htmlstr.innerHTML = "Found!"
@@ -47,41 +47,51 @@ function retrieveConnectedSuccess(result){
         }
     });
 }
-function connectSuccess(result){
+function connectSuccess(result){ //Callback function for successful connection to BTUART.
     if (result.status == "connected") {
         htmlstr.innerHTML = "Connected to RunRight!";
-        bluetoothle.discover(discoverSuccess, handleError, {
+        /*bluetoothle.discover(discoverSuccess, handleError, {
             address : RRAddr,
             clearCache : true
+        })*/ //Discovery is unneccessary if we already know the service UUID.
+        bluetoothle.subscribe(handleBTUARTRX, handleError, {
+            address : RRAddr,
+            service : uartUUID,
+            characteristic : rxID
         })
     }
 }
-function discoverSuccess(result){
-    /*result.services.forEach(function(service){
+/*function discoverSuccess(result){ //Callback on successful discovery of BT device
+    result.services.forEach(function(service){ //Commented code shows all of the running bluetooth services
         if(service.uuid == uartUUID){
             service.characteristics.forEach(function(characteristic){
                 htmlstr.innerHTML = htmlstr.innerHTML + characteristic.uuid + "<p>";
             });
         }
-    });*/
-    htmlstr.innerHTML = "Data in<p>...<p>"
-    bluetoothle.subscribe(subscribeSuccess, handleError, {
+    });
+    htmlstr.innerHTML = "Data in<p>...<p>";
+    bluetoothle.subscribe(handleBTUARTRX, handleError, {
         address : RRAddr,
         service : uartUUID,
         characteristic : rxID
     })
-}
-function subscribeSuccess(result){
+}*/
+function handleBTUARTRX(result){ //Callback handles changes to the UART service
     if(result.status == "subscribedResult"){
-        htmlstr.innerHTML = htmlstr.innerHTML + decoded(result.value) + "<p>";
+        //htmlstr.innerHTML = htmlstr.innerHTML + decoded(result.value) + "<p>"; //Commented just appendes the value to whatever is there.
+
+
     }
 }
-function writeSuccess(result){
-}
-function encoded(string){
+
+function encoded(string){ //Shorthand to encode string to Base 64 string
     return bluetoothle.bytesToEncodedString(bluetoothle.stringToBytes(string));
 }
-function write(string){
+function decoded(string){//Shorthand to decode base 64 string to string
+    return bluetoothle.bytesToString(bluetoothle.encodedStringToBytes(string));
+}
+
+function write(string){ //Writes a string to the bluetooth reciever
     bluetoothle.write(writeSuccess, handleError,{
         address : RRAddr,
         service : uartUUID,
@@ -89,7 +99,6 @@ function write(string){
         value : encoded(string)
     });
 }
-function decoded(string){
-    return bluetoothle.bytesToString(bluetoothle.encodedStringToBytes(string));
+function writeSuccess(result){ // Just a blank call back for a successful write.
 }
 main();
