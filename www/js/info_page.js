@@ -99,7 +99,7 @@ function write(string){ //Helper function to write a string to the RunRight
         value : encoded(string+"\n\l")
     });
 }
-function readString(string){
-
+function readString(str){
+    
 }
 main();
