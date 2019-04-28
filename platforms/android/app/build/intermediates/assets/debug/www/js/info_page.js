@@ -1,12 +1,12 @@
 
-var htmlstr = document.querySelector("#posture_info");
+//var htmlstr = document.querySelector("#posture_info");
 var RRAddr = "";
 var uartUUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
 var txID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
 var rxID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 function main()
 {
-    htmlstr.innerHTML = "Initializing...";
+    //htmlstr.innerHTML = "Initializing...";
     setTimeout(function(){
         bluetoothle.initialize(initializeSuccess, { request: true, statusReceiver: false });
     },1000);
@@ -34,14 +34,14 @@ function handleError(error) {
 }
 function initializeSuccess(result) {
     if (result.status === "enabled") {
-        htmlstr.innerHTML = "Searching for RunRight..."
+        //htmlstr.innerHTML = "Searching for RunRight..."
         bluetoothle.retrieveConnected(retrieveConnectedSuccess, handleError, {});
     }
 }
 function retrieveConnectedSuccess(result){
     result.forEach(function(device){
         if(device.name == "RunRightBT"){
-            htmlstr.innerHTML = "Found!"
+            //htmlstr.innerHTML = "Found!"
             RRAddr = device.address
             bluetoothle.connect(connectSuccess,handleError, {address : RRAddr, autoConnect : true});
         }
@@ -49,7 +49,7 @@ function retrieveConnectedSuccess(result){
 }
 function connectSuccess(result){
     if (result.status == "connected") {
-        htmlstr.innerHTML = "Connected to RunRight!";
+        //htmlstr.innerHTML = "Connected to RunRight!";
         bluetoothle.discover(discoverSuccess, handleError, {
             address : RRAddr,
             clearCache : true
@@ -64,22 +64,19 @@ function discoverSuccess(result){ // Once the device is discovered and connected
             });
         }
     });*/
-    htmlstr.innerHTML = "Press volume down to set neutral position.";
     document.addEventListener("volumedownbutton",function(){
-        write("RR_NSET");
-        htmlstr.innerHTML = "Neutral Position Set!<p>";
         bluetoothle.subscribe(subscribeSuccess, handleError, {
-            address : RRAddr,
-            service : uartUUID,
-            characteristic : rxID
-        })
+        address : RRAddr,
+        service : uartUUID,
+        characteristic : rxID
+    })
      },false);
 
 }
 function subscribeSuccess(result){
     if(result.status == "subscribedResult"){
-        htmlstr.innerHTML = htmlstr.innerHTML + decoded(result.value) + "<p>";
-        readString(decoded(result.value));
+        //htmlstr.innerHTML = htmlstr.innerHTML + decoded(result.value) + "<p>";
+        onRead(decoded(result.value));
     }
 }
 function writeSuccess(result){
@@ -90,7 +87,7 @@ function encoded(string){ // Helper function to encode string to base 64 string
 function decoded(string){ // Helper function to decoded base 64 string to a normal string
     return bluetoothle.bytesToString(bluetoothle.encodedStringToBytes(string));
 }
-function write(string){ //Helper function to write a string to the RunRight
+function send(string){ //Helper function to write a string to the RunRight
     if(RRAddr == "") {return;}
     bluetoothle.write(writeSuccess, handleError,{
         address : RRAddr,
@@ -99,7 +96,44 @@ function write(string){ //Helper function to write a string to the RunRight
         value : encoded(string+"\n\l")
     });
 }
-function readString(string){
+function onRead(str){ //Function that runs when a string is read to the device.
+    var ar = str.split(" ");
+    var cmd = ar[0]; //Contains the command
+    var args = ar.slice(1); //Values sent with the command
 
+    if(cmd == "SNEU"){
+        send("BDST"); // Starts the data stream on 
+    }
+    if(cmd == "BDST"){ //Response to begin data stream.
+    }
+    if(cmd == "DVAL"){
+        onCurvatureRecieved(parseFloat(args[0])); //Runs the event for when the device is receiving a value.
+    }
+    if(cmd == "SDST"){
+    }
+    if(cmd == "CHEK"){ //Responds to the device alive check.
+        send("CHEK");
+    }
+}
+function onCurvatureRecieved(value){ //Event for whenever a value is received
+    var angle = 7.39*(value - 0.8); //Angle of the device
 }
 main();
+
+/* Command set
+Phone to device >
+Device to phone <
+> Description: Statement [Response]
+
+> Set Neutral Position:   SNEU [SNEU]
+----
+> Begin Data Stream:    BDST [BDST]
+----
+< Value from device:    DVAL <number>
+----
+> Stop Data Steam:      SDST [SDST]
+----
+< Device alive?:        CHEK [CHEK]
+----
+
+*/
