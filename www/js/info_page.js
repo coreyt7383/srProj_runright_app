@@ -67,12 +67,12 @@ function discoverSuccess(result){ // Once the device is discovered and connected
     htmlstr.innerHTML = "Press volume down to set neutral position.";
     document.addEventListener("volumedownbutton",function(){
         write("RR_NSET");
-        htmlstr.innerHTML = "Neutral Position Set!<p>";
+        htmlstr.innerHTML = "Neutral Position Set!";
         bluetoothle.subscribe(subscribeSuccess, handleError, {
-            address : RRAddr,
-            service : uartUUID,
-            characteristic : rxID
-        })
+        address : RRAddr,
+        service : uartUUID,
+        characteristic : rxID
+    })
      },false);
 
 }
@@ -99,7 +99,7 @@ function write(string){ //Helper function to write a string to the RunRight
         value : encoded(string+"\n\l")
     });
 }
-function readString(str){
-    
+function readString(string){
+
 }
 main();
